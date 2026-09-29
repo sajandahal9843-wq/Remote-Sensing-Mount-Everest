@@ -52,7 +52,6 @@ fig1 <- ggplot(monthly_clima_long, aes(x = month, y = Mean_Snow_Area, color = El
 
 ggsave("Figure1_Seasonal_Climatology.png", plot = fig1, width = 8, height = 6, dpi = 300)
 
-
 annual_data <- full_data %>%
   group_by(year) %>%
   summarise(
@@ -95,7 +94,6 @@ fig2 <- ggplot(annual_long, aes(x = year, y = snow_area, color = Zone_Label)) +
 
 ggsave("Figure2_Elevation_Trends.png", plot = fig2, width = 10, height = 8, dpi = 300)
 
-
 p_temp <- ggplot(annual_data, aes(x = year, y = temp_c)) +
   geom_line(color = "firebrick", linewidth = 1) +
   geom_point(color = "firebrick", size = 1.5) +
@@ -120,7 +118,6 @@ p_solar <- ggplot(annual_data, aes(x = year, y = solar_rad)) +
 fig3 <- grid.arrange(p_temp, p_precip, p_solar, ncol = 1)
 ggsave("Figure3_Climatic_Drivers_Trends.png", plot = fig3, width = 8, height = 10, dpi = 300)
 
-
 cor_data <- annual_data %>% select(zone_1, zone_2, zone_3, zone_4, temp_c, solar_rad, precip)
 colnames(cor_data) <- c("Zone 1", "Zone 2", "Zone 3", "Zone 4", "Temp (°C)", "Solar Rad", "Precip")
 cor_mat <- cor(cor_data, use = "complete.obs")
@@ -130,7 +127,6 @@ corrplot(cor_mat, method = "color", type = "upper", order = "hclust",
          addCoef.col = "black", tl.col = "black", tl.srt = 45,
          col = colorRampPalette(c("#B2182B", "#EF8A62", "#F7F7F7", "#67A9CF", "#2166AC"))(200))
 dev.off()
-
 
 required_pkgs <- c("tidyverse", "scales")
 for (pkg in required_pkgs) {
@@ -164,7 +160,6 @@ zonal_df <- map_dfr(df$zonal_breakdown, parse_zonal_str)
 full_data <- bind_cols(df %>% select(year, month, date, basin_mean_temp_k, basin_mean_solar_rad, basin_mean_precip), zonal_df)
 full_data$temp_c <- full_data$basin_mean_temp_k - 273.15
 
-
 table1_monthly <- full_data %>%
   group_by(month) %>%
   summarise(
@@ -178,7 +173,6 @@ table1_monthly <- full_data %>%
 print("=== TABLE 1: Monthly Climatology ===")
 print(table1_monthly)
 write.csv(table1_monthly, "Table1_Monthly_Climatology.csv", row.names = FALSE)
-
 
 annual_data <- full_data %>%
   group_by(year) %>%
@@ -214,7 +208,6 @@ table2_trends <- bind_rows(
 print("=== TABLE 2: Elevation Trend Statistics ===")
 print(table2_trends)
 write.csv(table2_trends, "Table2_Elevation_Trends.csv", row.names = FALSE)
-
 
 cor_matrix <- cor(annual_data %>% select(zone_1, zone_2, zone_3, zone_4, temp_c, solar_rad, precip), use = "complete.obs")
 
