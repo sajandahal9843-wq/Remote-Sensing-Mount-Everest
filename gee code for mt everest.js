@@ -23,10 +23,10 @@ var modisSnow = ee.ImageCollection('MODIS/061/MOD10A1')
                   .filterDate(startDate, endDate)
                   .select('NDSI_Snow_Cover');
 
-var era5 = ee.ImageCollection('ECMWF/ERA5_LAND/MONTHLY')
+var era5 = ee.ImageCollection('ECMWF/ERA5_LAND/MONTHLY_AGGR')
              .filterBounds(aoi)
              .filterDate(startDate, endDate)
-             .select(['temperature_2m', 'surface_net_solar_radiation', 'total_precipitation']);
+             .select(['temperature_2m', 'surface_net_solar_radiation_sum', 'total_precipitation_sum']);
 
 var years = ee.List.sequence(2000, 2025);
 var months = ee.List.sequence(1, 12);
@@ -39,13 +39,13 @@ var monthlyData = years.map(function(y) {
     var snowMonth = modisSnow.filterDate(start, end);
     var era5MonthColl = era5.filterDate(start, end);
     
-        var hasEra5 = ee.Algorithms.If(era5MonthColl.size().gt(0),
+    var hasEra5 = ee.Algorithms.If(era5MonthColl.size().gt(0),
       era5MonthColl.mean().clip(aoi),
-      ee.Image.constant([273.15, 0, 0]).rename(['temperature_2m', 'surface_net_solar_radiation', 'total_precipitation']).clip(aoi)
+      ee.Image.constant([273.15, 0, 0]).rename(['temperature_2m', 'surface_net_solar_radiation_sum', 'total_precipitation_sum']).clip(aoi)
     );
     var era5Month = ee.Image(hasEra5);
     
-        var hasSnow = ee.Algorithms.If(snowMonth.size().gt(0), 
+    var hasSnow = ee.Algorithms.If(snowMonth.size().gt(0), 
       snowMonth.map(function(img) {
         return img.gte(40).and(img.lte(100));
       }).mean(), 
@@ -68,9 +68,9 @@ var monthlyData = years.map(function(y) {
       maxPixels: 1e9
     });
     
-        var tempVal = era5Month.select(['temperature_2m']).reduceRegion({reducer: ee.Reducer.mean(), geometry: aoi, scale: 11132, maxPixels: 1e9}).get('temperature_2m');
-    var radVal = era5Month.select(['surface_net_solar_radiation']).reduceRegion({reducer: ee.Reducer.mean(), geometry: aoi, scale: 11132, maxPixels: 1e9}).get('surface_net_solar_radiation');
-    var precipVal = era5Month.select(['total_precipitation']).reduceRegion({reducer: ee.Reducer.mean(), geometry: aoi, scale: 11132, maxPixels: 1e9}).get('total_precipitation');
+    var tempVal = era5Month.select(['temperature_2m']).reduceRegion({reducer: ee.Reducer.mean(), geometry: aoi, scale: 11132, maxPixels: 1e9}).get('temperature_2m');
+    var radVal = era5Month.select(['surface_net_solar_radiation_sum']).reduceRegion({reducer: ee.Reducer.mean(), geometry: aoi, scale: 11132, maxPixels: 1e9}).get('surface_net_solar_radiation_sum');
+    var precipVal = era5Month.select(['total_precipitation_sum']).reduceRegion({reducer: ee.Reducer.mean(), geometry: aoi, scale: 11132, maxPixels: 1e9}).get('total_precipitation_sum');
 
     return ee.Feature(null, {
       'year': y,
